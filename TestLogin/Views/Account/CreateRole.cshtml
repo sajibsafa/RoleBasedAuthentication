@@ -1,0 +1,18 @@
+﻿@model TestLogin.Models.RoleViewModel
+
+<h1>Create a New Role</h1>
+
+<form method="post" asp-action="CreateRole" asp-controller="Account">
+    <div class="form-group">
+        <label asp-for="RoleName">Role Name:</label>
+        <input asp-for="RoleName" class="form-control" />
+        <span asp-validation-for="RoleName" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create Role</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
