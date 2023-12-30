@@ -4,12 +4,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Win32;
 using System.Net.Mime;
+using System.Net.NetworkInformation;
 using System.Text;
 using TestLogin.DbCon;
 using TestLogin.Models;
 using TestLogin.service;
 using TestLogin.ViewModel;
+
+using System.Linq;
 
 namespace TestLogin.Controllers;
 [Authorize]
@@ -35,6 +39,12 @@ public class AccountController(RoleManager<IdentityRole> roleManager, Applicatii
         return View();
     }
 
+    //[AllowAnonymous]
+    //public IActionResult Edit()
+    //{
+    //    return View();
+    //}
+
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
@@ -58,6 +68,35 @@ public class AccountController(RoleManager<IdentityRole> roleManager, Applicatii
         }
         return View();
     }
+
+    //[HttpPost]
+    //[AllowAnonymous]
+    //[ValidateAntiForgeryToken]
+    
+
+    //todo this function 
+    //public async Task<IActionResult> Edit(RegistrarVm registrar)
+    //{
+    //    if (ModelState.IsValid)
+    //    {
+    //        AppUser appUser = new()
+    //        {
+    //            UserName = registrar.Email,
+    //            Name = registrar.Name,
+    //            Email = registrar.Email,
+    //            Address = registrar.Address,
+    //        };
+    //        var result = await userManager.CreateAsync(appUser, registrar.Password);
+    //        if (result.Succeeded)
+    //        {
+    //            await SignInManager.SignInAsync(appUser, false);
+    //            return RedirectToAction("Login", "Account");
+    //        }
+    //    }
+    //    return View();
+    //}
+
+
 
     [HttpPost]
     [AllowAnonymous]
@@ -212,6 +251,67 @@ public class AccountController(RoleManager<IdentityRole> roleManager, Applicatii
         return View("CreateUserRole", model);
     }
 
+
+    [HttpGet]
+    public async Task<ActionResult> Edit(string username)
+    {
+        var result = await userManager.FindByNameAsync(username);
+
+        AppUserVM appUserVm = new()
+        {
+
+            Name = result.Name,
+            UserName = result.UserName,
+            Address = result.Address,
+            Email = result.Email,
+            Id= result.Id,
+
+            
+        };
+
+        return View(appUserVm);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<ActionResult> Edit(AppUserVM registrar)
+    {
+        if (ModelState.IsValid)
+        {
+            var userToUpdate =  userManager.Users.FirstOrDefault(u => u.Id == registrar.Id);
+
+
+            if (userToUpdate != null)
+            {
+                userToUpdate.UserName = registrar.UserName;
+                userToUpdate.Address = registrar.Address;
+                userToUpdate.Email = registrar.Email;
+                userToUpdate.Name = registrar.Name;
+              
+              
+              
+                var result = await userManager.UpdateAsync(userToUpdate);
+
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
+                }
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "User not found.");
+            }
+        }
+
+        return View();
+    }
 
 
 
