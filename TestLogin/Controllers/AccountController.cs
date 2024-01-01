@@ -14,6 +14,7 @@ using TestLogin.service;
 using TestLogin.ViewModel;
 
 using System.Linq;
+using AspNetCore.ReportingServices.ReportProcessing.ReportObjectModel;
 
 namespace TestLogin.Controllers;
 [Authorize]
@@ -60,11 +61,11 @@ public class AccountController(RoleManager<IdentityRole> roleManager, Applicatii
                 Address = registrar.Address,
             };
             var result = await userManager.CreateAsync(appUser, registrar.Password);
-            if (result.Succeeded)
-            {
+            //if (result.Succeeded)
+            //{
                 await SignInManager.SignInAsync(appUser, false);
                 return RedirectToAction("Login", "Account");
-            }
+           // }
         }
         return View();
     }
@@ -312,6 +313,56 @@ public class AccountController(RoleManager<IdentityRole> roleManager, Applicatii
 
         return View();
     }
+
+
+    [AllowAnonymous]
+    public IActionResult ForgotPassword()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordVm model)
+    {
+        if (ModelState.IsValid)
+        {
+            var user =  userManager.Users.FirstOrDefault(u => u.Email== model.Email);
+
+            //userManager.FindByEmailAsync(model.Email);
+            if (user == null || !(await userManager.IsEmailConfirmedAsync(user)))
+            {
+
+                TempData["UserId"] = user?.Id;
+
+                return RedirectToAction("ForgotPasswordConfirmation");
+
+            }
+
+          
+           
+
+            
+        }
+
+        return View(model);
+    }
+
+    [AllowAnonymous]
+    public IActionResult ForgotPasswordConfirmation()
+    {
+
+        var id = TempData["UserId"] as string; // Assuming UserId is of type string
+
+        var viewModel = new RegistrarVm
+        {
+            Id = id // Assigning the retrieved id to the Id property of the RegistrarVm
+        };
+
+        return View(viewModel);
+    }
+
 
 
 
